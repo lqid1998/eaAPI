@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+import user_interface
+import sys
+import getopt
+
+
+def main():
+    if len(sys.argv) == 1:
+        user_interface.manu()
+    else:
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], "s:h",["station=", "help"])
+            for opt, value in opts:
+                if opt == "-s":
+                    stationID = value
+                elif opt == "-h":
+                    sys.exit("Run with eaAPI or eaAPI -s stationID")
+            
+            user_interface.stationReadings(stationID)
+        except Exception:
+            print("Run with eaAPI or eaAPI -s stationID")
+    
+
+
+if __name__ == '__main__':
+    main()
