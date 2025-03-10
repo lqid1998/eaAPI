@@ -173,3 +173,9 @@ cython_debug/
 
 # Saved Plot files
 *.png
+
+# VSCODE
+.vscode
+
+# Mac OS
+.DS_Store
