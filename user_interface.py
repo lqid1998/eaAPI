@@ -33,6 +33,8 @@ def stationReadings(stationID):
     if not stationID:
         stationID = str(input("Enter the station id: ").strip())
     station = Station.fromID(stationID)
+    if not station:
+        return
     station.printStationInfo()
     print(f"\nSave station({stationID})’s readings over the last 24 hours?")
     plotStationReadings(station)
@@ -61,7 +63,7 @@ def plotStationReadings(station: Station):
             readings = Readings.fromMeasure(measure.notation)
             if readings:
                 print(f"Measure {measure.label} has readings.")
-                readings.plotReadings()
+                readings.plotReadingsWithTable()
             else:
                 print(f"Measure {measure.label} has no readings.")
 

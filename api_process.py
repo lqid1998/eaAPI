@@ -109,8 +109,8 @@ class Measure:
         return Readings.fromMeasure(self)
 
 class Readings:
-    dateTime: list[datetime]
-    value: list[Decimal]
+    dateTimes: list[datetime]
+    values: list[Decimal]
     measureID: str
 
 
@@ -130,6 +130,8 @@ class Readings:
     def plotReadings(self):
         plotReadings(self)
 
+    def plotReadingsWithTable(self):
+        plotReadingsWithTable(self)
 
 def getResponse(url):
     
@@ -138,11 +140,14 @@ def getResponse(url):
     return responseJson
 
 def getItems(url):
-    
     response = requests.get(url)
-    responseJson = response.json()
-    items = responseJson["items"]
-    return items
+    if response.status_code == 200:
+        responseJson = response.json()
+        items = responseJson["items"]
+        return items
+    else:
+        response.raise_for_status()
+    
 
 def getAllStationsJson():
     url = "https://environment.data.gov.uk/flood-monitoring/id/stations"
@@ -154,7 +159,11 @@ def getStationsJsonByFilter(key, value):
 
 def getStationByID(stationID):
     url = f"https://environment.data.gov.uk/flood-monitoring/id/stations/{stationID}.json?_view=full"
-    return Station(getItems(url))
+    try:
+        return Station(getItems(url))
+    except requests.exceptions.HTTPError as e:
+        # print(f"{e}")
+        print(f"No station find with {stationID}")
 
 def getMeasureByID(measureID):
     url = f"https://environment.data.gov.uk/flood-monitoring/id/measures/{measureID}"
@@ -205,7 +214,30 @@ def plotReadings(readings:Readings):
     print(f"Plot of readings saved in {readings.measureID}.png\n")
     plt.close()
 
+def plotReadingsWithTable(readings:Readings):
+    plt.figure(figsize=(12, 9))
 
+    # plot
+    ax1  = plt.subplot(111)
+    ax1.plot(readings.dateTimes[0:96], readings.values[0:96], color="black", marker='x', markersize=10)
+    ax1.set_title(readings.measureID)
+    ax1.xaxis.set_major_locator(mdates.HourLocator(interval=2))  
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+
+    # table
+    labels = ["data tiem", "readings"]
+    texts = []
+
+    for i in range(0, 96):
+        texts.append([readings.dateTimes[i], readings.values[i]])
+
+    ax1.table(cellText=texts, colLabels=labels, loc="top", bbox=[0, -3.1, 0.3, 3])
+
+    plt.subplots_adjust(hspace=0.1)
+    # plt.show()
+    plt.savefig(f'{readings.measureID}.png',format='png', bbox_inches='tight')
+    print(f"Plot of readings saved in {readings.measureID}.png\n")
+    plt.close()
 
 # def getReadingsByStationID(id,):
 #     url = f"https://environment.data.gov.uk/flood-monitoring/id/stations/{id}/readings?_sorted"
